@@ -3,7 +3,8 @@
 // Using 'node-fetch' for making HTTP requests in a Node.js environment.
 // You'll need to add "node-fetch" to your project's dependencies.
 // Run `npm install node-fetch` in your project's root directory.
-const fetch = require('node-fetch');
+
+// The 'require' statement has been moved inside the handler for better compatibility.
 
 exports.handler = async function(event, context) {
     // This function only accepts POST requests.
@@ -15,6 +16,9 @@ exports.handler = async function(event, context) {
     console.log("Function triggered. Processing request...");
 
     try {
+        // UPDATED: Dynamically import node-fetch for maximum compatibility.
+        const fetch = (await import('node-fetch')).default;
+
         // Get the prompt sent from the client-side game.
         const { prompt } = JSON.parse(event.body);
         
