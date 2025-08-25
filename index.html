@@ -8,52 +8,54 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        /* Basic styles to reset default browser settings and set up the game's look and feel */
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
         body {
             margin: 0;
             padding: 0;
-            background-color: #052e16; /* Darker jungle green */
-            color: #fefce8; /* Creamy white */
+            background-color: #052e16;
+            color: #fefce8;
             font-family: 'Press Start 2P', cursive;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
+            justify-content: space-between; 
+            height: 100%; 
             overflow: hidden;
-            touch-action: manipulation; /* Prevents double tap zoom on mobile */
+            touch-action: manipulation;
         }
 
-        /* Container for the game canvas and UI elements */
         .game-container {
             position: relative;
             width: 100%;
-            max-width: 500px; /* Max width for larger screens */
+            max-width: 500px;
             margin: auto;
-            border: 4px solid #ca8a04; /* Golden yellow border */
+            border: 4px solid #ca8a04;
             box-shadow: 0 0 20px rgba(163, 230, 53, 0.5);
+            flex-shrink: 0;
         }
 
-        /* The main game canvas where everything is drawn */
         canvas {
             display: block;
             width: 100%;
-            background: linear-gradient(to bottom, #34d399, #10b981); /* Bright green gradient */
-            image-rendering: pixelated; /* Ensures the 8-bit style is sharp */
+            background: linear-gradient(to bottom, #34d399, #10b981);
+            image-rendering: pixelated;
         }
 
-        /* On-screen controls for mobile devices */
         #controls {
             display: flex;
             justify-content: space-between;
             width: 100%;
             max-width: 500px;
-            margin-top: 10px;
-            user-select: none; /* Prevents text selection when tapping buttons */
+            user-select: none;
+            padding: 10px 0;
+            box-sizing: border-box;
         }
 
         .control-btn {
-            background-color: #16a34a; /* Vibrant green */
+            background-color: #16a34a;
             color: #fefce8;
             border: 2px solid #15803d;
             border-radius: 8px;
@@ -64,7 +66,7 @@
             text-align: center;
             flex-grow: 1;
             margin: 0 5px;
-            box-shadow: 0 4px #14532d; /* Dark green shadow */
+            box-shadow: 0 4px #14532d;
             transition: all 0.1s ease;
         }
 
@@ -74,13 +76,12 @@
         }
 
         #fire-btn {
-            flex-grow: 2; /* Make the fire button larger */
-            background-color: #ef4444; /* Bright red */
+            flex-grow: 2;
+            background-color: #ef4444;
             border-color: #dc2626;
             box-shadow: 0 4px #991b1b;
         }
 
-        /* Modal for start/game over screens */
         .modal {
             position: absolute;
             top: 0;
@@ -102,8 +103,8 @@
         .modal h1 {
             font-size: 24px;
             margin-bottom: 10px;
-            color: #fde047; /* Bright yellow */
-            text-shadow: 2px 2px #be123c; /* Pink shadow */
+            color: #fde047;
+            text-shadow: 2px 2px #be123c;
         }
         
         .modal p {
@@ -131,7 +132,7 @@
         }
 
         .gemini-btn {
-            background-color: #8b5cf6; /* Purple */
+            background-color: #8b5cf6;
             border-color: #7c3aed;
             box-shadow: 0 4px #5b21b6;
         }
@@ -140,12 +141,8 @@
             display: none;
         }
         
-        /* Styles for Gemini API features */
         #invaderNameDisplay {
-            color: #f472b6;
-            font-size: 16px;
-            margin-top: 15px;
-            height: 20px;
+            display: none;
         }
         #missionReportContainer {
             margin-top: 15px;
@@ -266,202 +263,85 @@
         
         generateNameBtn.addEventListener('click', () => {
             let prompt;
-            // Roughly 1 in 5 times (20%), create a prompt that includes "Dean"
             if (Math.random() < 0.2) {
-                // Using double quotes for the main string to avoid issues with the apostrophe in "Dean's"
                 prompt = "Generate a highly creative and funny name for a horde of invading space prawns in a retro video game. " +
                          "The name MUST be a maximum of four words long and MUST include the name 'Dean' in it. " +
                          "Be inventive and avoid generic names. " +
                          "Examples: Dean's Prawn Demolition, The Crustacean Dean-vasion, Dean's Deadly Armada.";
             } else {
-                // The other 4 out of 5 times, use this standard creative prompt
                 prompt = 'Generate a highly creative and unique name for a horde of invading space prawns in a retro video game. ' +
                          'The name MUST be a maximum of four words long. Do NOT repeat common ideas. ' +
                          'Use a wide variety of cosmic, sci-fi, and humorous themes. Avoid names you have suggested before. ' +
                          'Examples: The Galactic Gilled Gang, Gamma Ray Guzzlers, The Claw Nebula Fleet, Atomic Shrimp Scourge.';
             }
+            
+            prompt += " (internal seed: " + Date.now() + ")";
+            
             callGemini(prompt, generateNameBtn, invaderNameDisplay);
         });
         
-        // --- THIS IS THE CORRECTED PART ---
         getReportBtn.addEventListener('click', () => {
             let prompt;
             if (isWin) {
-                prompt = 'Write a short, triumphant \'Plantation Log\' entry celebrating the victory against the invading prawns called \'' + invaderNameDisplay.textContent + '\'. ' +
-                         'Mention that all ' + prawnsDestroyed + ' prawns were destroyed. The tone should be like a retro 8-bit video game.';
+                prompt = `Write a short, triumphant 'Plantation Log' entry celebrating the victory against the invading prawns called '${invaderNameDisplay.textContent}'. Mention that all ${prawnsDestroyed} prawns were destroyed. The tone should be like a retro 8-bit video game.`;
             } else {
-                prompt = 'Write a short, dramatic \'Plantation Log\' entry about the narrow defeat against the invading prawns called \'' + invaderNameDisplay.textContent + '\'. ' +
-                         'Mention that ' + prawnsDestroyed + ' prawns were bravely destroyed before the plantation was overwhelmed. The tone should be like a retro 8-bit video game.';
+                prompt = `Write a short, dramatic 'Plantation Log' entry about the narrow defeat against the invading prawns called '${invaderNameDisplay.textContent}'. Mention that ${prawnsDestroyed} prawns were bravely destroyed before the plantation was overwhelmed. The tone should be like a retro 8-bit video game.`;
             }
             callGemini(prompt, getReportBtn, missionReportContainer);
         });
 
 
         // --- Game Object Classes ---
-
-        // Particle for explosion effect
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x; this.y = y;
-                this.size = Math.random() * 4 + 2;
-                this.speedX = Math.random() * 3 - 1.5;
-                this.speedY = Math.random() * 3 - 1.5;
-                this.color = color;
-                this.life = 1; 
-                this.decay = Math.random() * 0.05 + 0.01;
-            }
-            update() {
-                this.x += this.speedX; this.y += this.speedY;
-                this.life -= this.decay;
-                if (this.size > 0.2) this.size -= 0.1;
-            }
-            draw() {
-                ctx.globalAlpha = this.life;
-                ctx.fillStyle = this.color;
-                ctx.fillRect(this.x, this.y, this.size, this.size);
-                ctx.globalAlpha = 1;
-            }
-        }
-
-        // Explosion handler
-        class Explosion {
-            constructor(x, y) {
-                this.particles = [];
-                this.init(x, y);
-            }
-            init(x, y) {
-                const particleCount = 20;
-                const colors = ['#fde047', '#f59e0b', '#ef4444'];
-                for (let i = 0; i < particleCount; i++) {
-                    const color = colors[Math.floor(Math.random() * colors.length)];
-                    this.particles.push(new Particle(x, y, color));
-                }
-            }
-            update() {
-                this.particles.forEach((p, index) => {
-                    p.update();
-                    if (p.life <= 0) this.particles.splice(index, 1);
-                });
-            }
-            draw() { this.particles.forEach(p => p.draw()); }
-            isFinished() { return this.particles.length === 0; }
-        }
-
-        // Player (Coconut Cannon)
-        class Player {
-            constructor() {
-                this.width = 40; this.height = 30;
-                this.x = GAME_WIDTH / 2 - this.width / 2;
-                this.y = GAME_HEIGHT - this.height - 20;
-                this.speed = 4;
-                this.lastShotTime = 0;
-                this.shotCooldown = 400;
-            }
-            draw() {
-                ctx.fillStyle = '#f59e0b';
-                ctx.fillRect(this.x, this.y + 10, this.width, this.height - 10);
-                ctx.fillStyle = '#d97706';
-                ctx.fillRect(this.x + this.width / 2 - 5, this.y, 10, 15);
-            }
-            update() {
-                if (keys['ArrowLeft'] || keys['left-btn']) this.x -= this.speed;
-                if (keys['ArrowRight'] || keys['right-btn']) this.x += this.speed;
-                if (this.x < 0) this.x = 0;
-                if (this.x + this.width > GAME_WIDTH) this.x = GAME_WIDTH - this.width;
-            }
-            shoot() {
-                const now = Date.now();
-                if (now - this.lastShotTime > this.shotCooldown) {
-                    coconuts.push(new Coconut(this.x + this.width / 2 - 5, this.y));
-                    this.lastShotTime = now;
-                }
-            }
-        }
-
-        // Projectile (Coconut)
-        class Coconut {
-            constructor(x, y) {
-                this.x = x; this.y = y;
-                this.width = 10; this.height = 10;
-                this.speed = 6;
-            }
-            draw() {
-                ctx.fillStyle = '#6F4E37';
-                ctx.beginPath();
-                ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            update() { this.y -= this.speed; }
-        }
-
-        // Enemy (Prawn)
+        class Particle { constructor(x, y, color) { this.x = x; this.y = y; this.size = Math.random() * 4 + 2; this.speedX = Math.random() * 3 - 1.5; this.speedY = Math.random() * 3 - 1.5; this.color = color; this.life = 1; this.decay = Math.random() * 0.05 + 0.01; } update() { this.x += this.speedX; this.y += this.speedY; this.life -= this.decay; if (this.size > 0.2) this.size -= 0.1; } draw() { ctx.globalAlpha = this.life; ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.size, this.size); ctx.globalAlpha = 1; } }
+        class Explosion { constructor(x, y) { this.particles = []; this.init(x, y); } init(x, y) { const particleCount = 20; const colors = ['#fde047', '#f59e0b', '#ef4444']; for (let i = 0; i < particleCount; i++) { const color = colors[Math.floor(Math.random() * colors.length)]; this.particles.push(new Particle(x, y, color)); } } update() { this.particles.forEach((p, index) => { p.update(); if (p.life <= 0) this.particles.splice(index, 1); }); } draw() { this.particles.forEach(p => p.draw()); } isFinished() { return this.particles.length === 0; } }
+        class Player { constructor() { this.width = 40; this.height = 30; this.x = GAME_WIDTH / 2 - this.width / 2; this.y = GAME_HEIGHT - this.height - 20; this.speed = 4; this.lastShotTime = 0; this.shotCooldown = 400; } draw() { ctx.fillStyle = '#f59e0b'; ctx.fillRect(this.x, this.y + 10, this.width, this.height - 10); ctx.fillStyle = '#d97706'; ctx.fillRect(this.x + this.width / 2 - 5, this.y, 10, 15); } update() { if (keys['ArrowLeft'] || keys['left-btn']) this.x -= this.speed; if (keys['ArrowRight'] || keys['right-btn']) this.x += this.speed; if (this.x < 0) this.x = 0; if (this.x + this.width > GAME_WIDTH) this.x = GAME_WIDTH - this.width; } shoot() { const now = Date.now(); if (now - this.lastShotTime > this.shotCooldown) { coconuts.push(new Coconut(this.x + this.width / 2 - 5, this.y)); this.lastShotTime = now; } } }
+        class Coconut { constructor(x, y) { this.x = x; this.y = y; this.width = 10; this.height = 10; this.speed = 6; } draw() { ctx.fillStyle = '#6F4E37'; ctx.beginPath(); ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2); ctx.fill(); } update() { this.y -= this.speed; } }
+        
+        // --- THIS IS THE UPDATED PRAWN CLASS ---
         class Prawn {
             constructor(x, y) {
                 this.x = x; this.y = y;
-                this.width = 30; this.height = 24;
-                this.pixelSize = 2;
+                this.width = 30; // 15 pixels * 2
+                this.height = 30; // 15 pixels * 2
+                this.pixelSize = 2; // Each 'pixel' in the array is 2x2 on canvas
+                // New sprite array to match the reference image
                 this.sprite = [
-                    [0,0,0,0,1,1,1,1,0,0,0,0,0],[0,0,0,1,1,1,1,1,1,0,0,0,0],[0,0,1,1,1,1,1,1,1,1,0,0,0],
-                    [0,1,1,1,1,3,1,1,2,2,1,1,0],[1,1,1,1,1,1,1,1,2,2,2,1,1],[1,1,1,1,1,1,1,1,2,2,1,1,0],
-                    [0,1,1,1,1,3,1,1,1,1,1,0,0],[0,0,1,1,1,1,1,1,1,1,0,0,0],[0,0,0,1,1,1,1,1,0,0,0,0,0],
-                    [0,0,0,0,1,1,1,0,0,0,0,0,0],[0,0,0,0,1,1,0,0,0,0,0,0,0],[0,0,0,0,1,1,0,0,0,0,0,0,0]
+                    [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,1,1,1,1,0,0,0],
+                    [0,0,0,0,0,0,0,1,1,1,1,1,1,0,0],
+                    [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0],
+                    [0,0,1,1,0,0,1,1,1,1,1,1,1,1,1],
+                    [0,1,1,1,1,0,2,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+                    [0,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+                    [0,0,1,1,1,1,1,1,1,1,1,0,0,0,0],
+                    [0,0,0,1,1,1,1,1,1,0,0,0,0,0,0],
+                    [0,0,0,0,1,1,1,1,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,3,3,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,3,3,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,3,0,3,0,0,0,0,0,0,0]
                 ];
             }
             draw() {
                 for (let r = 0; r < this.sprite.length; r++) {
                     for (let c = 0; c < this.sprite[r].length; c++) {
+                        // New color palette to match reference
                         switch(this.sprite[r][c]) {
-                            case 1: ctx.fillStyle = '#ff69b4'; break;
-                            case 2: ctx.fillStyle = '#fde047'; break;
-                            case 3: ctx.fillStyle = '#ffffff'; break;
-                            default: continue;
+                            case 1: ctx.fillStyle = '#D14D41'; break; // Main red body
+                            case 2: ctx.fillStyle = '#000000'; break; // Black eye
+                            case 3: ctx.fillStyle = '#8E252E'; break; // Darker red for legs/detail
+                            default: continue; // 0 is transparent
                         }
                         ctx.fillRect(this.x + c * this.pixelSize, this.y + r * this.pixelSize, this.pixelSize, this.pixelSize);
                     }
                 }
             }
         }
-        
-        // Prawn Laser
-        class PrawnLaser {
-            constructor(x, y) {
-                this.x = x; this.y = y;
-                this.width = 4; this.height = 12;
-                this.speed = 4;
-            }
-            draw() {
-                ctx.fillStyle = '#f472b6';
-                ctx.fillRect(this.x, this.y, this.width, this.height);
-            }
-            update() { this.y += this.speed; }
-        }
 
-        // Barrier (Tiki Hut)
-        class Barrier {
-            constructor(x) {
-                this.x = x; this.y = GAME_HEIGHT - 120;
-                this.width = 60; this.height = 40;
-                this.health = 4;
-                this.segments = this.createSegments();
-            }
-            createSegments() {
-                let segs = []; let segWidth = this.width / 2; let segHeight = this.height / 2;
-                for (let i = 0; i < 2; i++) {
-                    for (let j = 0; j < 2; j++) {
-                        segs.push({ x: this.x + j * segWidth, y: this.y + i * segHeight, width: segWidth, height: segHeight, active: true });
-                    }
-                } return segs;
-            }
-            draw() {
-                ctx.fillStyle = '#a16207';
-                this.segments.forEach(seg => { if (seg.active) ctx.fillRect(seg.x, seg.y, seg.width, seg.height); });
-            }
-            takeDamage(index) {
-                if (this.segments[index].active) {
-                    this.segments[index].active = false; this.health--;
-                }
-            }
-        }
+        class PrawnLaser { constructor(x, y) { this.x = x; this.y = y; this.width = 4; this.height = 12; this.speed = 4; } draw() { ctx.fillStyle = '#f472b6'; ctx.fillRect(this.x, this.y, this.width, this.height); } update() { this.y += this.speed; } }
+        class Barrier { constructor(x) { this.x = x; this.y = GAME_HEIGHT - 120; this.width = 60; this.height = 40; this.health = 4; this.segments = this.createSegments(); } createSegments() { let segs = []; let segWidth = this.width / 2; let segHeight = this.height / 2; for (let i = 0; i < 2; i++) { for (let j = 0; j < 2; j++) { segs.push({ x: this.x + j * segWidth, y: this.y + i * segHeight, width: segWidth, height: segHeight, active: true }); } } return segs; } draw() { ctx.fillStyle = '#a16207'; this.segments.forEach(seg => { if (seg.active) ctx.fillRect(seg.x, seg.y, seg.width, seg.height); }); } takeDamage(index) { if (this.segments[index].active) { this.segments[index].active = false; this.health--; } } }
+
 
         // --- Game Initialization ---
         function init() {
@@ -563,6 +443,32 @@
             ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
             ctx.fillStyle = '#4d7c0f';
             ctx.fillRect(0, GAME_HEIGHT - 10, GAME_WIDTH, 10);
+            
+            if (gameState === 'START') {
+                 ctx.fillStyle = '#f472b6';
+                 ctx.font = '16px "Press Start 2P"';
+                 ctx.textAlign = 'center';
+                 ctx.textBaseline = 'middle';
+                 const invaderName = invaderNameDisplay.textContent;
+                 const maxWidth = GAME_WIDTH - 40;
+                 const words = invaderName.split(' ');
+                 let line = '';
+                 let y = 300;
+                 for(let n = 0; n < words.length; n++) {
+                    let testLine = line + words[n] + ' ';
+                    let metrics = ctx.measureText(testLine);
+                    let testWidth = metrics.width;
+                    if (testWidth > maxWidth && n > 0) {
+                        ctx.fillText(line, GAME_WIDTH / 2, y);
+                        line = words[n] + ' ';
+                        y += 25;
+                    } else {
+                        line = testLine;
+                    }
+                 }
+                 ctx.fillText(line, GAME_WIDTH / 2, y);
+            }
+            
             if (gameState === 'PLAYING') {
                 player.draw();
                 coconuts.forEach(c => c.draw());
@@ -595,7 +501,7 @@
             gameState = 'PLAYING';
             startScreen.classList.add('hidden');
             gameOverScreen.classList.add('hidden');
-            missionReportContainer.textContent = ''; // Clear old report
+            missionReportContainer.textContent = '';
         }
 
         function setGameOver(hasWon) {
