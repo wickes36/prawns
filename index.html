@@ -264,25 +264,21 @@
             }
         }
         
-        // --- UPDATED EVENT LISTENER ---
+        // --- CORRECTED EVENT LISTENER ---
         generateNameBtn.addEventListener('click', () => {
             let prompt;
             // Roughly 1 in 5 times (20%), create a prompt that includes "Dean"
             if (Math.random() < 0.2) {
-                prompt = `
-                    Generate a highly creative and funny name for a horde of invading space prawns in a retro video game.
-                    The name MUST be a maximum of four words long and MUST include the name 'Dean' in it.
-                    Be inventive and avoid generic names.
-                    Examples: Dean's Prawn Demolition, The Crustacean Dean-vasion, Dean's Deadly Armada.
-                `;
+                prompt = 'Generate a highly creative and funny name for a horde of invading space prawns in a retro video game. ' +
+                         'The name MUST be a maximum of four words long and MUST include the name "Dean" in it. ' +
+                         'Be inventive and avoid generic names. ' +
+                         'Examples: Dean\'s Prawn Demolition, The Crustacean Dean-vasion, Dean\'s Deadly Armada.';
             } else {
                 // The other 4 out of 5 times, use this standard creative prompt
-                prompt = `
-                    Generate a highly creative and unique name for a horde of invading space prawns in a retro video game.
-                    The name MUST be a maximum of four words long. Do NOT repeat common ideas.
-                    Use a wide variety of cosmic, sci-fi, and humorous themes. Avoid names you have suggested before.
-                    Examples: The Galactic Gilled Gang, Gamma Ray Guzzlers, The Claw Nebula Fleet, Atomic Shrimp Scourge.
-                `;
+                prompt = 'Generate a highly creative and unique name for a horde of invading space prawns in a retro video game. ' +
+                         'The name MUST be a maximum of four words long. Do NOT repeat common ideas. ' +
+                         'Use a wide variety of cosmic, sci-fi, and humorous themes. Avoid names you have suggested before. ' +
+                         'Examples: The Galactic Gilled Gang, Gamma Ray Guzzlers, The Claw Nebula Fleet, Atomic Shrimp Scourge.';
             }
             callGemini(prompt, generateNameBtn, invaderNameDisplay);
         });
