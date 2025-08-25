@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Protect the Plantation</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,8 @@
         }
         body {
             margin: 0;
-            padding: 0;
+            /* Added padding to respect the safe areas at top and sides */
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
             background-color: #052e16;
             color: #fefce8;
             font-family: 'Press Start 2P', cursive;
@@ -25,13 +26,15 @@
             height: 100%; 
             overflow: hidden;
             touch-action: manipulation;
+            box-sizing: border-box;
         }
 
         .game-container {
             position: relative;
             width: 100%;
             max-width: 500px;
-            margin: auto;
+            /* Changed margin to ensure it's centered and has some space */
+            margin: 10px auto;
             border: 4px solid #ca8a04;
             box-shadow: 0 0 20px rgba(163, 230, 53, 0.5);
             flex-shrink: 0;
@@ -43,15 +46,17 @@
             background: linear-gradient(to bottom, #34d399, #10b981);
             image-rendering: pixelated;
         }
-
+        
         #controls {
             display: flex;
             justify-content: space-between;
             width: 100%;
             max-width: 500px;
             user-select: none;
-            padding: 10px 0;
             box-sizing: border-box;
+            padding-top: 5px;
+            /* CHANGE 2: Dynamically adds padding to the bottom on iPhones */
+            padding-bottom: calc(15px + env(safe-area-inset-bottom));
         }
 
         .control-btn {
@@ -296,46 +301,7 @@
         class Explosion { constructor(x, y) { this.particles = []; this.init(x, y); } init(x, y) { const particleCount = 20; const colors = ['#fde047', '#f59e0b', '#ef4444']; for (let i = 0; i < particleCount; i++) { const color = colors[Math.floor(Math.random() * colors.length)]; this.particles.push(new Particle(x, y, color)); } } update() { this.particles.forEach((p, index) => { p.update(); if (p.life <= 0) this.particles.splice(index, 1); }); } draw() { this.particles.forEach(p => p.draw()); } isFinished() { return this.particles.length === 0; } }
         class Player { constructor() { this.width = 40; this.height = 30; this.x = GAME_WIDTH / 2 - this.width / 2; this.y = GAME_HEIGHT - this.height - 20; this.speed = 4; this.lastShotTime = 0; this.shotCooldown = 400; } draw() { ctx.fillStyle = '#f59e0b'; ctx.fillRect(this.x, this.y + 10, this.width, this.height - 10); ctx.fillStyle = '#d97706'; ctx.fillRect(this.x + this.width / 2 - 5, this.y, 10, 15); } update() { if (keys['ArrowLeft'] || keys['left-btn']) this.x -= this.speed; if (keys['ArrowRight'] || keys['right-btn']) this.x += this.speed; if (this.x < 0) this.x = 0; if (this.x + this.width > GAME_WIDTH) this.x = GAME_WIDTH - this.width; } shoot() { const now = Date.now(); if (now - this.lastShotTime > this.shotCooldown) { coconuts.push(new Coconut(this.x + this.width / 2 - 5, this.y)); this.lastShotTime = now; } } }
         class Coconut { constructor(x, y) { this.x = x; this.y = y; this.width = 10; this.height = 10; this.speed = 6; } draw() { ctx.fillStyle = '#6F4E37'; ctx.beginPath(); ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2); ctx.fill(); } update() { this.y -= this.speed; } }
-        
-        // --- NEW AND IMPROVED PRAWN CLASS ---
-        class Prawn {
-            constructor(x, y) {
-                this.x = x; this.y = y;
-                this.width = 32; // 16 pixels * 2
-                this.height = 24; // 12 pixels * 2
-                this.pixelSize = 2;
-                // Redrawn sprite with more detail and a better shape
-                this.sprite = [
-                    [0,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0],
-                    [0,0,0,0,0,0,0,0,0,0,2,1,1,2,0,0],
-                    [0,0,0,0,0,0,0,2,2,1,1,1,1,1,2,0],
-                    [0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,2],
-                    [0,0,0,0,0,2,1,1,3,1,1,1,1,1,1,2],
-                    [0,0,0,0,2,1,1,1,1,1,1,1,1,1,2,0],
-                    [0,0,0,2,1,1,1,1,1,1,1,1,1,2,0,0],
-                    [0,0,2,1,1,1,1,2,1,1,1,1,2,0,0,0],
-                    [0,0,2,1,1,1,2,0,2,1,1,2,0,0,0,0],
-                    [0,0,0,2,1,2,0,0,0,2,2,0,0,0,0,0],
-                    [0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0],
-                    [0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0]
-                ];
-            }
-            draw() {
-                for (let r = 0; r < this.sprite.length; r++) {
-                    for (let c = 0; c < this.sprite[r].length; c++) {
-                        // New, more prawn-like color palette
-                        switch(this.sprite[r][c]) {
-                            case 1: ctx.fillStyle = '#F57D76'; break; // Pinkish-red body
-                            case 2: ctx.fillStyle = '#C04153'; break; // Darker red outline/detail
-                            case 3: ctx.fillStyle = '#000000'; break; // Black eye
-                            default: continue; // 0 is transparent
-                        }
-                        ctx.fillRect(this.x + c * this.pixelSize, this.y + r * this.pixelSize, this.pixelSize, this.pixelSize);
-                    }
-                }
-            }
-        }
-
+        class Prawn { constructor(x, y) { this.x = x; this.y = y; this.width = 32; this.height = 24; this.pixelSize = 2; this.sprite = [ [0,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0], [0,0,0,0,0,0,0,0,0,0,2,1,1,2,0,0], [0,0,0,0,0,0,0,2,2,1,1,1,1,1,2,0], [0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,2], [0,0,0,0,0,2,1,1,3,1,1,1,1,1,1,2], [0,0,0,0,2,1,1,1,1,1,1,1,1,1,2,0], [0,0,0,2,1,1,1,1,1,1,1,1,1,2,0,0], [0,0,2,1,1,1,1,2,1,1,1,1,2,0,0,0], [0,0,2,1,1,1,2,0,2,1,1,2,0,0,0,0], [0,0,0,2,1,2,0,0,0,2,2,0,0,0,0,0], [0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0] ]; } draw() { for (let r = 0; r < this.sprite.length; r++) { for (let c = 0; c < this.sprite[r].length; c++) { switch(this.sprite[r][c]) { case 1: ctx.fillStyle = '#F57D76'; break; case 2: ctx.fillStyle = '#C04153'; break; case 3: ctx.fillStyle = '#000000'; break; default: continue; } ctx.fillRect(this.x + c * this.pixelSize, this.y + r * this.pixelSize, this.pixelSize, this.pixelSize); } } } }
         class PrawnLaser { constructor(x, y) { this.x = x; this.y = y; this.width = 4; this.height = 12; this.speed = 4; } draw() { ctx.fillStyle = '#f472b6'; ctx.fillRect(this.x, this.y, this.width, this.height); } update() { this.y += this.speed; } }
         class Barrier { constructor(x) { this.x = x; this.y = GAME_HEIGHT - 120; this.width = 60; this.height = 40; this.health = 4; this.segments = this.createSegments(); } createSegments() { let segs = []; let segWidth = this.width / 2; let segHeight = this.height / 2; for (let i = 0; i < 2; i++) { for (let j = 0; j < 2; j++) { segs.push({ x: this.x + j * segWidth, y: this.y + i * segHeight, width: segWidth, height: segHeight, active: true }); } } return segs; } draw() { ctx.fillStyle = '#a16207'; this.segments.forEach(seg => { if (seg.active) ctx.fillRect(seg.x, seg.y, seg.width, seg.height); }); } takeDamage(index) { if (this.segments[index].active) { this.segments[index].active = false; this.health--; } } }
 
@@ -520,7 +486,7 @@
         leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['left-btn'] = true; });
         leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['left-btn'] = false; });
         rightBtn.addEventListener('mousedown', () => keys['right-btn'] = true);
-        rightBtn.addEventListener('mouseup', () => keys['right-btn'] = false);
+        rightBtn.addEventListener('mouseup', () => keys['right-btn'] = false;
         rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['right-btn'] = true; });
         rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['right-btn'] = false; });
         fireBtn.addEventListener('mousedown', () => { if(gameState === 'PLAYING') player.shoot(); });
