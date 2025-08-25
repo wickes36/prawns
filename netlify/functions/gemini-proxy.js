@@ -25,15 +25,19 @@ exports.handler = async (event) => {
             return { statusCode: 500, body: JSON.stringify({ error: 'Server configuration error.' }) };
         }
         console.log("Successfully loaded API key from environment variables.");
-
-        // CHANGE 1: The API key is REMOVED from the URL.
+        
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent`;
 
+        // THIS IS THE MODIFIED PART
         const payload = {
             contents: [{
                 role: "user",
                 parts: [{ text: prompt }]
-            }]
+            }],
+            // Adding this configuration increases the randomness
+            generationConfig: {
+                temperature: 0.9 
+            }
         };
 
         console.log("Sending request to Gemini API...");
@@ -41,7 +45,6 @@ exports.handler = async (event) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // CHANGE 2: The API key is ADDED to the headers.
                 'x-goog-api-key': apiKey 
             },
             body: JSON.stringify(payload)
