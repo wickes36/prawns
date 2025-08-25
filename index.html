@@ -8,25 +8,36 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        /* --- EXPERT RESPONSIVE LAYOUT --- */
+        /* --- EXPERT RESPONSIVE REFACTOR --- */
+        :root {
+            /* Safe area variables with fallbacks */
+            --safe-area-inset-top: env(safe-area-inset-top, 0px);
+            --safe-area-inset-right: env(safe-area-inset-right, 0px);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-area-inset-left: env(safe-area-inset-left, 0px);
+        }
+
         html, body {
+            width: 100%;
             height: 100%;
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background-color: #052e16; /* Moved from body for consistency */
+            background-color: #052e16;
         }
 
         body {
             font-family: 'Press Start 2P', cursive;
             color: #fefce8;
-            display: grid;
-            place-items: center;
-            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Add padding that respects the safe areas */
+            padding: var(--safe-area-inset-top) var(--safe-area-inset-right) var(--safe-area-inset-bottom) var(--safe-area-inset-left);
             box-sizing: border-box;
-            touch-action: manipulation;
         }
 
+        /* Wrapper holds the entire game and scales correctly */
         .game-wrapper {
             display: flex;
             flex-direction: column;
@@ -37,12 +48,14 @@
             align-items: center;
         }
 
+        /* Game container maintains its shape and holds the canvas */
         .game-container {
             position: relative;
             width: 100%;
             border: 4px solid #ca8a04;
             box-shadow: 0 0 20px rgba(163, 230, 53, 0.5);
-            aspect-ratio: 400 / 600; 
+            aspect-ratio: 400 / 600;
+            box-sizing: border-box;
         }
 
         canvas {
@@ -53,13 +66,13 @@
             image-rendering: pixelated;
         }
         
+        /* Controls container spans the full width below the game */
         #controls {
             display: flex;
             gap: 10px;
             width: 100%;
             margin-top: 15px;
             flex-shrink: 0;
-            padding-bottom: env(safe-area-inset-bottom);
         }
 
         .control-btn {
@@ -77,12 +90,14 @@
             transition: all 0.1s ease;
             white-space: nowrap;
             user-select: none;
+            touch-action: manipulation;
         }
+        /* --- END OF REFACTOR --- */
 
         .control-btn:active, .control-btn.active {
             transform: translateY(4px);
             box-shadow: 0 0 #14532d;
-            filter: brightness(1.1); /* Added for better feedback */
+            filter: brightness(1.1);
         }
 
         #fire-btn {
@@ -91,7 +106,6 @@
             border-color: #dc2626;
             box-shadow: 0 4px #991b1b;
         }
-        /* --- END OF LAYOUT --- */
 
         .modal {
             position: absolute;
@@ -199,23 +213,17 @@
         // --- Canvas and Context Setup ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-
-        // Set a base resolution for the game logic
         const GAME_WIDTH = 400;
         const GAME_HEIGHT = 600;
 
-        // --- Retina Display Scaling (iOS Polish) ---
-        // Scale the canvas for high-resolution screens to make pixel art sharp
         const scale = window.devicePixelRatio || 1;
         canvas.width = GAME_WIDTH * scale;
         canvas.height = GAME_HEIGHT * scale;
-        canvas.style.width = GAME_WIDTH + 'px';
-        canvas.style.height = GAME_HEIGHT + 'px';
         ctx.scale(scale, scale);
         
         // --- Game State and Variables ---
         let player, prawns = [], coconuts = [], prawnLasers = [], barriers = [], explosions = [];
-        let score = 0; // Changed from prawnsDestroyed
+        let score = 0;
         let lives = 3;
         let prawnDirection = 1; 
         let prawnSpeed = 0.5;
@@ -225,7 +233,7 @@
         let keys = {};
         let gameState = 'START';
         let isWin = false;
-        let goldenPrawnTimer; // Timer for the new gameplay feature
+        let goldenPrawnTimer;
 
         // --- DOM Elements ---
         const startScreen = document.getElementById('startScreen');
@@ -242,14 +250,8 @@
         const getReportBtn = document.getElementById('getReportBtn');
         const missionReportContainer = document.getElementById('missionReportContainer');
 
-        // --- iOS Polish: Haptic Feedback ---
-        function vibrate(duration = 50) {
-            if (navigator.vibrate) {
-                navigator.vibrate(duration);
-            }
-        }
+        function vibrate(duration = 50) { if (navigator.vibrate) { navigator.vibrate(duration); } }
 
-        // --- Gemini API Integration ---
         async function callGemini(prompt, button, outputElement) {
             vibrate();
             button.disabled = true;
@@ -257,8 +259,7 @@
             const apiEndpoint = "/.netlify/functions/gemini-proxy";
             try {
                 const response = await fetch(apiEndpoint, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ prompt: prompt }),
                 });
                 if (!response.ok) {
@@ -279,9 +280,15 @@
         generateNameBtn.addEventListener('click', () => {
             let prompt;
             if (Math.random() < 0.2) {
-                prompt = "Generate a highly creative and funny name for a horde of invading space prawns in a retro video game. The name MUST be a maximum of four words long and MUST include the name 'Dean' in it. Be inventive and avoid generic names. Examples: Dean's Prawn Demolition, The Crustacean Dean-vasion, Dean's Deadly Armada.";
+                prompt = "Generate a highly creative and funny name for a horde of invading space prawns in a retro video game. " +
+                         "The name MUST be a maximum of four words long and MUST include the name 'Dean' in it. " +
+                         "Be inventive and avoid generic names. " +
+                         "Examples: Dean's Prawn Demolition, The Crustacean Dean-vasion, Dean's Deadly Armada.";
             } else {
-                prompt = 'Generate a highly creative and unique name for a horde of invading space prawns in a retro video game. The name MUST be a maximum of four words long. Do NOT repeat common ideas. Use a wide variety of cosmic, sci-fi, and humorous themes. Avoid names you have suggested before. Examples: The Galactic Gilled Gang, Gamma Ray Guzzlers, The Claw Nebula Fleet, Atomic Shrimp Scourge.';
+                prompt = "Generate a highly creative and unique name for a horde of invading space prawns in a retro video game. " +
+                         "The name MUST be a maximum of four words long. Do NOT repeat common ideas. " +
+                         "Use a wide variety of cosmic, sci-fi, and humorous themes. Avoid names you have suggested before. " +
+                         "Examples: The Galactic Gilled Gang, Gamma Ray Guzzlers, The Claw Nebula Fleet, Atomic Shrimp Scourge.";
             }
             prompt += " (internal seed: " + Date.now() + ")";
             callGemini(prompt, generateNameBtn, invaderNameDisplay);
@@ -297,237 +304,35 @@
             callGemini(prompt, getReportBtn, missionReportContainer);
         });
 
-        // --- Game Object Classes ---
         class Particle { constructor(x, y, color) { this.x = x; this.y = y; this.size = Math.random() * 4 + 2; this.speedX = Math.random() * 3 - 1.5; this.speedY = Math.random() * 3 - 1.5; this.color = color; this.life = 1; this.decay = Math.random() * 0.05 + 0.01; } update() { this.x += this.speedX; this.y += this.speedY; this.life -= this.decay; if (this.size > 0.2) this.size -= 0.1; } draw() { ctx.globalAlpha = this.life; ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.size, this.size); ctx.globalAlpha = 1; } }
         class Explosion { constructor(x, y) { this.particles = []; this.init(x, y); } init(x, y) { const particleCount = 20; const colors = ['#fde047', '#f59e0b', '#ef4444']; for (let i = 0; i < particleCount; i++) { const color = colors[Math.floor(Math.random() * colors.length)]; this.particles.push(new Particle(x, y, color)); } } update() { this.particles.forEach((p, index) => { p.update(); if (p.life <= 0) this.particles.splice(index, 1); }); } draw() { this.particles.forEach(p => p.draw()); } isFinished() { return this.particles.length === 0; } }
         class Player { constructor() { this.width = 40; this.height = 30; this.x = GAME_WIDTH / 2 - this.width / 2; this.y = GAME_HEIGHT - this.height - 20; this.speed = 4; this.lastShotTime = 0; this.shotCooldown = 400; } draw() { ctx.fillStyle = '#f59e0b'; ctx.fillRect(this.x, this.y + 10, this.width, this.height - 10); ctx.fillStyle = '#d97706'; ctx.fillRect(this.x + this.width / 2 - 5, this.y, 10, 15); } update() { if (keys['ArrowLeft'] || keys['left-btn']) this.x -= this.speed; if (keys['ArrowRight'] || keys['right-btn']) this.x += this.speed; if (this.x < 0) this.x = 0; if (this.x + this.width > GAME_WIDTH) this.x = GAME_WIDTH - this.width; } shoot() { const now = Date.now(); if (now - this.lastShotTime > this.shotCooldown) { vibrate(20); coconuts.push(new Coconut(this.x + this.width / 2 - 5, this.y)); this.lastShotTime = now; } } }
         class Coconut { constructor(x, y) { this.x = x; this.y = y; this.width = 10; this.height = 10; this.speed = 6; } draw() { ctx.fillStyle = '#6F4E37'; ctx.beginPath(); ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2); ctx.fill(); } update() { this.y -= this.speed; } }
-        
-        class Prawn {
-            constructor(x, y) {
-                this.x = x; this.y = y; this.width = 32; this.height = 24; this.pixelSize = 2;
-                this.isGolden = false; // New property for golden prawn
-                this.sprite = [ [0,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0], [0,0,0,0,0,0,0,0,0,0,2,1,1,2,0,0], [0,0,0,0,0,0,0,2,2,1,1,1,1,1,2,0], [0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,2], [0,0,0,0,0,2,1,1,3,1,1,1,1,1,1,2], [0,0,0,0,2,1,1,1,1,1,1,1,1,1,2,0], [0,0,0,2,1,1,1,1,1,1,1,1,1,2,0,0], [0,0,2,1,1,1,1,2,1,1,1,1,2,0,0,0], [0,0,2,1,1,1,2,0,2,1,1,2,0,0,0,0], [0,0,0,2,1,2,0,0,0,2,2,0,0,0,0,0], [0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0] ];
-            }
-            draw() {
-                // Check if this prawn is the golden one and should be flashing
-                const isFlashingGold = this.isGolden && Math.floor(Date.now() / 250) % 2 === 0;
-
-                for (let r = 0; r < this.sprite.length; r++) {
-                    for (let c = 0; c < this.sprite[r].length; c++) {
-                        let color;
-                        if (isFlashingGold) {
-                            switch(this.sprite[r][c]) {
-                                case 1: color = '#FFD700'; break; // Gold
-                                case 2: color = '#F0A500'; break; // Darker Gold
-                                case 3: color = '#FFFFFF'; break; // White eye
-                                default: continue;
-                            }
-                        } else {
-                            switch(this.sprite[r][c]) {
-                                case 1: color = '#F57D76'; break; // Pinkish-red body
-                                case 2: color = '#C04153'; break; // Darker red outline
-                                case 3: color = '#000000'; break; // Black eye
-                                default: continue;
-                            }
-                        }
-                        ctx.fillStyle = color;
-                        ctx.fillRect(this.x + c * this.pixelSize, this.y + r * this.pixelSize, this.pixelSize, this.pixelSize);
-                    }
-                }
-            }
-        }
-
+        class Prawn { constructor(x, y) { this.x = x; this.y = y; this.width = 32; this.height = 24; this.pixelSize = 2; this.isGolden = false; this.sprite = [ [0,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0], [0,0,0,0,0,0,0,0,0,0,2,1,1,2,0,0], [0,0,0,0,0,0,0,2,2,1,1,1,1,1,2,0], [0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,2], [0,0,0,0,0,2,1,1,3,1,1,1,1,1,1,2], [0,0,0,0,2,1,1,1,1,1,1,1,1,1,2,0], [0,0,0,2,1,1,1,1,1,1,1,1,1,2,0,0], [0,0,2,1,1,1,1,2,1,1,1,1,2,0,0,0], [0,0,2,1,1,1,2,0,2,1,1,2,0,0,0,0], [0,0,0,2,1,2,0,0,0,2,2,0,0,0,0,0], [0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0] ]; } draw() { const isFlashingGold = this.isGolden && Math.floor(Date.now() / 250) % 2 === 0; for (let r = 0; r < this.sprite.length; r++) { for (let c = 0; c < this.sprite[r].length; c++) { let color; if (isFlashingGold) { switch(this.sprite[r][c]) { case 1: color = '#FFD700'; break; case 2: color = '#F0A500'; break; case 3: color = '#FFFFFF'; break; default: continue; } } else { switch(this.sprite[r][c]) { case 1: color = '#F57D76'; break; case 2: color = '#C04153'; break; case 3: color = '#000000'; break; default: continue; } } ctx.fillStyle = color; ctx.fillRect(this.x + c * this.pixelSize, this.y + r * this.pixelSize, this.pixelSize, this.pixelSize); } } } }
         class PrawnLaser { constructor(x, y) { this.x = x; this.y = y; this.width = 4; this.height = 12; this.speed = 4; } draw() { ctx.fillStyle = '#f472b6'; ctx.fillRect(this.x, this.y, this.width, this.height); } update() { this.y += this.speed; } }
         class Barrier { constructor(x) { this.x = x; this.y = GAME_HEIGHT - 120; this.width = 60; this.height = 40; this.health = 4; this.segments = this.createSegments(); } createSegments() { let segs = []; let segWidth = this.width / 2; let segHeight = this.height / 2; for (let i = 0; i < 2; i++) { for (let j = 0; j < 2; j++) { segs.push({ x: this.x + j * segWidth, y: this.y + i * segHeight, width: segWidth, height: segHeight, active: true }); } } return segs; } draw() { ctx.fillStyle = '#a16207'; this.segments.forEach(seg => { if (seg.active) ctx.fillRect(seg.x, seg.y, seg.width, seg.height); }); } takeDamage(index) { if (this.segments[index].active) { this.segments[index].active = false; this.health--; } } }
-
-        // --- New Gameplay: Golden Prawn Selection ---
-        function selectGoldenPrawn() {
-            prawns.forEach(p => p.isGolden = false); // Reset all prawns
-            if (prawns.length > 0) {
-                const randomIndex = Math.floor(Math.random() * prawns.length);
-                prawns[randomIndex].isGolden = true;
-            }
-        }
-
-        // --- Game Initialization ---
-        function init() {
-            player = new Player();
-            prawns = []; coconuts = []; prawnLasers = []; barriers = []; explosions = [];
-            score = 0; lives = 3; prawnDirection = 1; prawnSpeed = 0.5; keys = {};
-
-            clearInterval(goldenPrawnTimer); // Clear any old timer
-            goldenPrawnTimer = setInterval(selectGoldenPrawn, 5000); // Select a new golden prawn every 5 seconds
-
-            const rows = 5; const cols = 8; const prawnSpacing = 40;
-            const startX = (GAME_WIDTH - (cols * prawnSpacing)) / 2 + 15;
-            const startY = 70;
-            for (let i = 0; i < rows; i++) { for (let j = 0; j < cols; j++) { prawns.push(new Prawn(startX + j * prawnSpacing, startY + i * prawnSpacing)); } }
-            const barrierCount = 4; const barrierSpacing = GAME_WIDTH / barrierCount;
-            for (let i = 0; i < barrierCount; i++) { barriers.push(new Barrier(barrierSpacing * i + barrierSpacing / 2 - 30)); }
-        }
+        function selectGoldenPrawn() { prawns.forEach(p => p.isGolden = false); if (prawns.length > 0) { const randomIndex = Math.floor(Math.random() * prawns.length); prawns[randomIndex].isGolden = true; } }
+        function init() { player = new Player(); prawns = []; coconuts = []; prawnLasers = []; barriers = []; explosions = []; score = 0; lives = 3; prawnDirection = 1; prawnSpeed = 0.5; keys = {}; clearInterval(goldenPrawnTimer); goldenPrawnTimer = setInterval(selectGoldenPrawn, 5000); const rows = 5; const cols = 8; const prawnSpacing = 40; const startX = (GAME_WIDTH - (cols * prawnSpacing)) / 2 + 15; const startY = 70; for (let i = 0; i < rows; i++) { for (let j = 0; j < cols; j++) { prawns.push(new Prawn(startX + j * prawnSpacing, startY + i * prawnSpacing)); } } const barrierCount = 4; const barrierSpacing = GAME_WIDTH / barrierCount; for (let i = 0; i < barrierCount; i++) { barriers.push(new Barrier(barrierSpacing * i + barrierSpacing / 2 - 30)); } }
+        function update() { if (gameState !== 'PLAYING') return; player.update(); coconuts.forEach((c, i) => { c.update(); if (c.y < 0) coconuts.splice(i, 1); }); prawnLasers.forEach((l, i) => { l.update(); if (l.y > GAME_HEIGHT) prawnLasers.splice(i, 1); }); explosions.forEach((e, i) => { e.update(); if (e.isFinished()) explosions.splice(i, 1); }); let edgeReached = false; prawns.forEach(prawn => { prawn.x += prawnSpeed * prawnDirection; if (prawn.x <= 0 || prawn.x + prawn.width >= GAME_WIDTH) edgeReached = true; if (prawn.y + prawn.height >= player.y) setGameOver(false); }); if (edgeReached) { prawnDirection *= -1; prawns.forEach(prawn => { prawn.y += prawnDropDistance; }); } const now = Date.now(); if (now - lastPrawnFireTime > prawnFireCooldown && prawns.length > 0) { const firingPrawn = prawns[Math.floor(Math.random() * prawns.length)]; prawnLasers.push(new PrawnLaser(firingPrawn.x + firingPrawn.width / 2 - 2, firingPrawn.y + firingPrawn.height)); lastPrawnFireTime = now; } handleCollisions(); if (prawns.length === 0) setGameOver(true); }
+        function handleCollisions() { for (let cIndex = coconuts.length - 1; cIndex >= 0; cIndex--) { const coconut = coconuts[cIndex]; for (let pIndex = prawns.length - 1; pIndex >= 0; pIndex--) { const prawn = prawns[pIndex]; if (coconut.x < prawn.x + prawn.width && coconut.x + coconut.width > prawn.x && coconut.y < prawn.y + prawn.height && coconut.y + coconut.height > prawn.y) { if (prawn.isGolden) { score += 500; clearInterval(goldenPrawnTimer); goldenPrawnTimer = setInterval(selectGoldenPrawn, 2000); } else { score += 100; } explosions.push(new Explosion(prawn.x + prawn.width / 2, prawn.y + prawn.height / 2)); coconuts.splice(cIndex, 1); prawns.splice(pIndex, 1); prawnSpeed += 0.02; break; } } } prawnLasers.forEach((laser, lIndex) => { if (laser.x < player.x + player.width && laser.x + laser.width > player.x && laser.y < player.y + player.height && laser.y + laser.height > player.y) { prawnLasers.splice(lIndex, 1); lives--; explosions.push(new Explosion(player.x + player.width / 2, player.y + player.height / 2)); if (lives <= 0) setGameOver(false); } }); barriers.forEach(barrier => { if (barrier.health > 0) { coconuts.forEach((coconut, cIndex) => { barrier.segments.forEach((seg, sIndex) => { if (seg.active && coconut.x < seg.x + seg.width && coconut.x + coconut.width > seg.x && coconut.y < seg.y + seg.height && coconut.y + coconut.height > seg.y) { coconuts.splice(cIndex, 1); barrier.takeDamage(sIndex); } }); }); prawnLasers.forEach((laser, lIndex) => { barrier.segments.forEach((seg, sIndex) => { if (seg.active && laser.x < seg.x + seg.width && laser.x + laser.width > seg.x && laser.y < seg.y + seg.height && laser.y + laser.height > seg.y) { prawnLasers.splice(lIndex, 1); barrier.takeDamage(sIndex); } }); }); } }); }
+        function draw() { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#4d7c0f'; ctx.fillRect(0, GAME_HEIGHT - 10, GAME_WIDTH, 10); if (gameState === 'START') { ctx.fillStyle = '#f472b6'; ctx.font = '16px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; const invaderName = invaderNameDisplay.textContent; const maxWidth = GAME_WIDTH - 40; const words = invaderName.split(' '); let line = ''; let y = 300; for(let n = 0; n < words.length; n++) { let testLine = line + words[n] + ' '; let metrics = ctx.measureText(testLine); let testWidth = metrics.width; if (testWidth > maxWidth && n > 0) { ctx.fillText(line, GAME_WIDTH / 2, y); line = words[n] + ' '; y += 25; } else { line = testLine; } } ctx.fillText(line, GAME_WIDTH / 2, y); } if (gameState === 'PLAYING') { player.draw(); coconuts.forEach(c => c.draw()); prawnLasers.forEach(l => l.draw()); prawns.forEach(p => p.draw()); barriers.forEach(b => b.draw()); explosions.forEach(e => e.draw()); drawUI(); } }
+        function drawUI() { ctx.fillStyle = 'white'; ctx.font = '14px "Press Start 2P"'; ctx.textAlign = 'left'; ctx.fillText(`Score: ${score}`, 10, 25); ctx.textAlign = 'right'; ctx.fillText(`Lives: ${lives}`, GAME_WIDTH - 10, 25); }
+        function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
+        function startGame() { vibrate(); init(); gameState = 'PLAYING'; startScreen.classList.add('hidden'); gameOverScreen.classList.add('hidden'); missionReportContainer.textContent = ''; }
+        function setGameOver(hasWon) { gameState = 'GAMEOVER'; isWin = hasWon; finalScoreEl.textContent = score; gameOverTitle.textContent = isWin ? "You Win!" : "Game Over"; gameOverScreen.classList.remove('hidden'); clearInterval(goldenPrawnTimer); }
         
-        // --- Game Logic ---
-        function update() {
-            if (gameState !== 'PLAYING') return;
-            player.update();
-            coconuts.forEach((c, i) => { c.update(); if (c.y < 0) coconuts.splice(i, 1); });
-            prawnLasers.forEach((l, i) => { l.update(); if (l.y > GAME_HEIGHT) prawnLasers.splice(i, 1); });
-            explosions.forEach((e, i) => { e.update(); if (e.isFinished()) explosions.splice(i, 1); });
-
-            let edgeReached = false;
-            prawns.forEach(prawn => {
-                prawn.x += prawnSpeed * prawnDirection;
-                if (prawn.x <= 0 || prawn.x + prawn.width >= GAME_WIDTH) edgeReached = true;
-                if (prawn.y + prawn.height >= player.y) setGameOver(false);
-            });
-
-            if (edgeReached) {
-                prawnDirection *= -1;
-                prawns.forEach(prawn => { prawn.y += prawnDropDistance; });
-            }
-            
-            const now = Date.now();
-            if (now - lastPrawnFireTime > prawnFireCooldown && prawns.length > 0) {
-                const firingPrawn = prawns[Math.floor(Math.random() * prawns.length)];
-                prawnLasers.push(new PrawnLaser(firingPrawn.x + firingPrawn.width / 2 - 2, firingPrawn.y + firingPrawn.height));
-                lastPrawnFireTime = now;
-            }
-            handleCollisions();
-            if (prawns.length === 0) setGameOver(true);
-        }
-
-        function handleCollisions() {
-            for (let cIndex = coconuts.length - 1; cIndex >= 0; cIndex--) {
-                const coconut = coconuts[cIndex];
-                for (let pIndex = prawns.length - 1; pIndex >= 0; pIndex--) {
-                    const prawn = prawns[pIndex];
-                    if (coconut.x < prawn.x + prawn.width && coconut.x + coconut.width > prawn.x &&
-                        coconut.y < prawn.y + prawn.height && coconut.y + coconut.height > prawn.y) {
-                        
-                        // Scoring logic
-                        if (prawn.isGolden) {
-                            score += 500;
-                            // Make the next golden prawn appear sooner as a reward
-                            clearInterval(goldenPrawnTimer);
-                            goldenPrawnTimer = setInterval(selectGoldenPrawn, 2000);
-                        } else {
-                            score += 100;
-                        }
-
-                        explosions.push(new Explosion(prawn.x + prawn.width / 2, prawn.y + prawn.height / 2));
-                        coconuts.splice(cIndex, 1);
-                        prawns.splice(pIndex, 1);
-                        prawnSpeed += 0.02;
-                        break; // Exit inner loop since coconut is gone
-                    }
-                }
-            }
-            // Other collision logic...
-            prawnLasers.forEach((laser, lIndex) => { if (laser.x < player.x + player.width && laser.x + laser.width > player.x && laser.y < player.y + player.height && laser.y + laser.height > player.y) { prawnLasers.splice(lIndex, 1); lives--; explosions.push(new Explosion(player.x + player.width / 2, player.y + player.height / 2)); if (lives <= 0) setGameOver(false); } });
-            barriers.forEach(barrier => { if (barrier.health > 0) { coconuts.forEach((coconut, cIndex) => { barrier.segments.forEach((seg, sIndex) => { if (seg.active && coconut.x < seg.x + seg.width && coconut.x + coconut.width > seg.x && coconut.y < seg.y + seg.height && coconut.y + coconut.height > seg.y) { coconuts.splice(cIndex, 1); barrier.takeDamage(sIndex); } }); }); prawnLasers.forEach((laser, lIndex) => { barrier.segments.forEach((seg, sIndex) => { if (seg.active && laser.x < seg.x + seg.width && laser.x + laser.width > seg.x && laser.y < seg.y + seg.height && laser.y + laser.height > seg.y) { prawnLasers.splice(lIndex, 1); barrier.takeDamage(sIndex); } }); }); } });
-        }
-
-        // --- Drawing ---
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Use scaled width/height
-            // Game background is set in CSS, but we can draw a ground layer
-            ctx.fillStyle = '#4d7c0f';
-            ctx.fillRect(0, GAME_HEIGHT - 10, GAME_WIDTH, 10);
-            
-            if (gameState === 'START') {
-                 ctx.fillStyle = '#f472b6';
-                 ctx.font = '16px "Press Start 2P"';
-                 ctx.textAlign = 'center';
-                 ctx.textBaseline = 'middle';
-                 const invaderName = invaderNameDisplay.textContent;
-                 const maxWidth = GAME_WIDTH - 40;
-                 const words = invaderName.split(' ');
-                 let line = '';
-                 let y = 300;
-                 for(let n = 0; n < words.length; n++) {
-                    let testLine = line + words[n] + ' ';
-                    let metrics = ctx.measureText(testLine);
-                    let testWidth = metrics.width;
-                    if (testWidth > maxWidth && n > 0) {
-                        ctx.fillText(line, GAME_WIDTH / 2, y);
-                        line = words[n] + ' ';
-                        y += 25;
-                    } else {
-                        line = testLine;
-                    }
-                 }
-                 ctx.fillText(line, GAME_WIDTH / 2, y);
-            }
-            
-            if (gameState === 'PLAYING') {
-                player.draw();
-                coconuts.forEach(c => c.draw());
-                prawnLasers.forEach(l => l.draw());
-                prawns.forEach(p => p.draw());
-                barriers.forEach(b => b.draw());
-                explosions.forEach(e => e.draw());
-                drawUI();
-            }
-        }
-        
-        function drawUI() {
-            ctx.fillStyle = 'white';
-            ctx.font = '14px "Press Start 2P"';
-            ctx.textAlign = 'left';
-            ctx.fillText(`Score: ${score}`, 10, 25); // Updated UI text
-            ctx.textAlign = 'right';
-            ctx.fillText(`Lives: ${lives}`, GAME_WIDTH - 10, 25);
-        }
-        
-        // --- Game Loop ---
-        function gameLoop() {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-        
-        // --- Game State Management ---
-        function startGame() {
-            vibrate();
-            init();
-            gameState = 'PLAYING';
-            startScreen.classList.add('hidden');
-            gameOverScreen.classList.add('hidden');
-            missionReportContainer.textContent = '';
-        }
-
-        function setGameOver(hasWon) {
-            gameState = 'GAMEOVER';
-            isWin = hasWon;
-            finalScoreEl.textContent = score; // Use score variable
-            gameOverTitle.textContent = isWin ? "You Win!" : "Game Over";
-            gameOverScreen.classList.remove('hidden');
-            clearInterval(goldenPrawnTimer); // Stop the timer on game over
-        }
-        
-        // --- Event Listeners ---
-        window.addEventListener('keydown', (e) => {
-            keys[e.code] = true;
-            if (e.code === 'Space' && gameState === 'PLAYING') player.shoot();
-        });
+        window.addEventListener('keydown', (e) => { keys[e.code] = true; if (e.code === 'Space' && gameState === 'PLAYING') player.shoot(); });
         window.addEventListener('keyup', (e) => { keys[e.code] = false; });
-
-        // Add haptics to touch controls
         leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); vibrate(20); keys['left-btn'] = true; });
         rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); vibrate(20); keys['right-btn'] = true; });
         fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if(gameState === 'PLAYING') player.shoot(); });
-        
         leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['left-btn'] = false; });
         rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['right-btn'] = false; });
-        
-        // These are for desktop and will not interfere with touch
         leftBtn.addEventListener('mousedown', () => keys['left-btn'] = true);
         leftBtn.addEventListener('mouseup', () => keys['left-btn'] = false);
         rightBtn.addEventListener('mousedown', () => keys['right-btn'] = true);
         rightBtn.addEventListener('mouseup', () => keys['right-btn'] = false);
         fireBtn.addEventListener('mousedown', () => { if(gameState === 'PLAYING') player.shoot(); });
-        
         startButton.addEventListener('click', startGame);
         restartButton.addEventListener('click', startGame);
 
