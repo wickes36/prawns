@@ -5,6 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "preinstall": "npx npm-force-resolutions",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,7 +14,11 @@
   "dependencies": {
     "node-fetch": "^3.3.0"
   },
+  "devDependencies": {
+    "npm-force-resolutions": "^0.0.10"
+  },
   "overrides": {
-    "fetch-blob": "3.1.2"
+    "fetch-blob": "3.1.2",
+    "formdata-polyfill": "4.0.10"
   }
 }
