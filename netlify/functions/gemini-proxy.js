@@ -26,7 +26,8 @@ exports.handler = async (event) => {
         }
         console.log("Successfully loaded API key from environment variables.");
 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+        // CHANGE 1: The API key is REMOVED from the URL.
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent`;
 
         const payload = {
             contents: [{
@@ -38,7 +39,11 @@ exports.handler = async (event) => {
         console.log("Sending request to Gemini API...");
         const response = await fetch(apiUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                // CHANGE 2: The API key is ADDED to the headers.
+                'x-goog-api-key': apiKey 
+            },
             body: JSON.stringify(payload)
         });
 
@@ -46,10 +51,11 @@ exports.handler = async (event) => {
 
         if (!response.ok) {
             const errorBody = await response.text();
-            console.error('Gemini API Error:', errorBody);
+            console.error('Gemini API Error Status:', response.status);
+            console.error('Gemini API Error Body:', errorBody);
             return {
                 statusCode: response.status,
-                body: JSON.stringify({ error: 'Failed to fetch from Gemini API' })
+                body: JSON.stringify({ error: `Failed to fetch from Gemini API: ${errorBody}` })
             };
         }
 
