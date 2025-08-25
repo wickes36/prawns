@@ -280,15 +280,15 @@
             callGemini(prompt, generateNameBtn, invaderNameDisplay);
         });
         
-        // --- THIS IS THE CORRECTED PART ---
+        // --- THIS IS THE FULLY CORRECTED PART ---
         getReportBtn.addEventListener('click', () => {
             let prompt;
+            // Using template literals (backticks `` ` ``) to safely build the string
+            // This prevents errors if the invader name has an apostrophe (e.g., "Dean's Armada")
             if (isWin) {
-                prompt = 'Write a short, triumphant \'Plantation Log\' entry celebrating the victory against the invading prawns called \'' + invaderNameDisplay.textContent + '\'. ' +
-                         'Mention that all ' + prawnsDestroyed + ' prawns were destroyed. The tone should be like a retro 8-bit video game.';
+                prompt = `Write a short, triumphant 'Plantation Log' entry celebrating the victory against the invading prawns called '${invaderNameDisplay.textContent}'. Mention that all ${prawnsDestroyed} prawns were destroyed. The tone should be like a retro 8-bit video game.`;
             } else {
-                prompt = 'Write a short, dramatic \'Plantation Log\' entry about the narrow defeat against the invading prawns called \'' + invaderNameDisplay.textContent + '\'. ' +
-                         'Mention that ' + prawnsDestroyed + ' prawns were bravely destroyed before the plantation was overwhelmed. The tone should be like a retro 8-bit video game.';
+                prompt = `Write a short, dramatic 'Plantation Log' entry about the narrow defeat against the invading prawns called '${invaderNameDisplay.textContent}'. Mention that ${prawnsDestroyed} prawns were bravely destroyed before the plantation was overwhelmed. The tone should be like a retro 8-bit video game.`;
             }
             callGemini(prompt, getReportBtn, missionReportContainer);
         });
@@ -614,7 +614,7 @@
         leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['left-btn'] = true; });
         leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['left-btn'] = false; });
         rightBtn.addEventListener('mousedown', () => keys['right-btn'] = true);
-        rightBtn.addEventListener('mouseup', () => keys['right-btn'] = false;
+        rightBtn.addEventListener('mouseup', () => keys['right-btn'] = false);
         rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['right-btn'] = true; });
         rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['right-btn'] = false; });
         fireBtn.addEventListener('mousedown', () => { if(gameState === 'PLAYING') player.shoot(); });
