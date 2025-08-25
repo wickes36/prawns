@@ -266,30 +266,32 @@
         
         generateNameBtn.addEventListener('click', () => {
             let prompt;
+            // Roughly 1 in 5 times (20%), create a prompt that includes "Dean"
             if (Math.random() < 0.2) {
+                // Using double quotes for the main string to avoid issues with the apostrophe in "Dean's"
                 prompt = "Generate a highly creative and funny name for a horde of invading space prawns in a retro video game. " +
                          "The name MUST be a maximum of four words long and MUST include the name 'Dean' in it. " +
                          "Be inventive and avoid generic names. " +
                          "Examples: Dean's Prawn Demolition, The Crustacean Dean-vasion, Dean's Deadly Armada.";
             } else {
+                // The other 4 out of 5 times, use this standard creative prompt
                 prompt = 'Generate a highly creative and unique name for a horde of invading space prawns in a retro video game. ' +
                          'The name MUST be a maximum of four words long. Do NOT repeat common ideas. ' +
                          'Use a wide variety of cosmic, sci-fi, and humorous themes. Avoid names you have suggested before. ' +
                          'Examples: The Galactic Gilled Gang, Gamma Ray Guzzlers, The Claw Nebula Fleet, Atomic Shrimp Scourge.';
             }
-            
-            // THIS IS THE NEW LINE
-            prompt += " (internal seed: " + Date.now() + ")";
-            
             callGemini(prompt, generateNameBtn, invaderNameDisplay);
         });
         
+        // --- THIS IS THE CORRECTED PART ---
         getReportBtn.addEventListener('click', () => {
             let prompt;
             if (isWin) {
-                prompt = `Write a short, triumphant 'Plantation Log' entry celebrating the victory against the invading prawns called '${invaderNameDisplay.textContent}'. Mention that all ${prawnsDestroyed} prawns were destroyed. The tone should be like a retro 8-bit video game.`;
+                prompt = 'Write a short, triumphant \'Plantation Log\' entry celebrating the victory against the invading prawns called \'' + invaderNameDisplay.textContent + '\'. ' +
+                         'Mention that all ' + prawnsDestroyed + ' prawns were destroyed. The tone should be like a retro 8-bit video game.';
             } else {
-                prompt = `Write a short, dramatic 'Plantation Log' entry about the narrow defeat against the invading prawns called '${invaderNameDisplay.textContent}'. Mention that ${prawnsDestroyed} prawns were bravely destroyed before the plantation was overwhelmed. The tone should be like a retro 8-bit video game.`;
+                prompt = 'Write a short, dramatic \'Plantation Log\' entry about the narrow defeat against the invading prawns called \'' + invaderNameDisplay.textContent + '\'. ' +
+                         'Mention that ' + prawnsDestroyed + ' prawns were bravely destroyed before the plantation was overwhelmed. The tone should be like a retro 8-bit video game.';
             }
             callGemini(prompt, getReportBtn, missionReportContainer);
         });
@@ -615,7 +617,7 @@
         leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['left-btn'] = true; });
         leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['left-btn'] = false; });
         rightBtn.addEventListener('mousedown', () => keys['right-btn'] = true);
-        rightBtn.addEventListener('mouseup', () => keys['right-btn'] = false;
+        rightBtn.addEventListener('mouseup', () => keys['right-btn'] = false);
         rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['right-btn'] = true; });
         rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['right-btn'] = false; });
         fireBtn.addEventListener('mousedown', () => { if(gameState === 'PLAYING') player.shoot(); });
