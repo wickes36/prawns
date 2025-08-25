@@ -14,27 +14,32 @@
         }
         body {
             margin: 0;
-            /* Added padding to respect the safe areas at top and sides */
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+            padding: 10px; /* Provides some space from screen edges */
             background-color: #052e16;
             color: #fefce8;
             font-family: 'Press Start 2P', cursive;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: space-between; 
+            justify-content: center; /* Re-centered for desktop */
             height: 100%; 
             overflow: hidden;
             touch-action: manipulation;
             box-sizing: border-box;
         }
 
+        /* NEW WRAPPER for game and controls */
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+        }
+
         .game-container {
             position: relative;
             width: 100%;
-            max-width: 500px;
-            /* Changed margin to ensure it's centered and has some space */
-            margin: 10px auto;
+            /* Removed margin: auto as the wrapper now centers it */
             border: 4px solid #ca8a04;
             box-shadow: 0 0 20px rgba(163, 230, 53, 0.5);
             flex-shrink: 0;
@@ -51,12 +56,11 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
-            max-width: 500px;
             user-select: none;
             box-sizing: border-box;
-            padding-top: 5px;
-            /* CHANGE 2: Dynamically adds padding to the bottom on iPhones */
-            padding-bottom: calc(15px + env(safe-area-inset-bottom));
+            margin-top: 10px; /* Space between canvas and controls */
+            /* Padding for mobile safe area */
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         .control-btn {
@@ -163,28 +167,30 @@
 </head>
 <body>
 
-    <div class="game-container">
-        <canvas id="gameCanvas"></canvas>
-        <div id="startScreen" class="modal">
-            <h1>Beau's 'Protect the Plantation' Game</h1>
-            <p>The invaders are approaching!</p>
-            <p id="invaderNameDisplay">The Giant Prawns</p>
-            <button id="generateNameBtn" class="gemini-btn">✨ New Invader Name</button>
-            <button id="startButton">Start Game</button>
+    <div class="game-wrapper">
+        <div class="game-container">
+            <canvas id="gameCanvas"></canvas>
+            <div id="startScreen" class="modal">
+                <h1>Beau's 'Protect the Plantation' Game</h1>
+                <p>The invaders are approaching!</p>
+                <p id="invaderNameDisplay">The Giant Prawns</p>
+                <button id="generateNameBtn" class="gemini-btn">✨ New Invader Name</button>
+                <button id="startButton">Start Game</button>
+            </div>
+            <div id="gameOverScreen" class="modal hidden">
+                <h1 id="gameOverTitle">Game Over</h1>
+                <p>Prawns Destroyed: <span id="finalScore">0</span></p>
+                <div id="missionReportContainer"></div>
+                <button id="getReportBtn" class="gemini-btn">✨ Get Mission Report</button>
+                <button id="restartButton">Play Again</button>
+            </div>
         </div>
-        <div id="gameOverScreen" class="modal hidden">
-            <h1 id="gameOverTitle">Game Over</h1>
-            <p>Prawns Destroyed: <span id="finalScore">0</span></p>
-            <div id="missionReportContainer"></div>
-            <button id="getReportBtn" class="gemini-btn">✨ Get Mission Report</button>
-            <button id="restartButton">Play Again</button>
+        
+        <div id="controls">
+            <button id="left-btn" class="control-btn">LEFT</button>
+            <button id="fire-btn" class="control-btn">FIRE</button>
+            <button id="right-btn" class="control-btn">RIGHT</button>
         </div>
-    </div>
-    
-    <div id="controls">
-        <button id="left-btn" class="control-btn">LEFT</button>
-        <button id="fire-btn" class="control-btn">FIRE</button>
-        <button id="right-btn" class="control-btn">RIGHT</button>
     </div>
 
     <script>
