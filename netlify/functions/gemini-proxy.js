@@ -1,12 +1,11 @@
-// This file should be saved as: /netlify/functions/gemini-proxy.js
+// /netlify/functions/gemini-proxy.js
 
 // Using 'node-fetch' for making HTTP requests in a Node.js environment.
-// You'll need to add "node-fetch" to your project's dependencies.
-// Run `npm install node-fetch` in your project's root directory.
+// You'll need to add "node-fetch" to your project's dependencies (`npm install node-fetch`).
+import fetch from 'node-fetch';
 
-// The 'require' statement has been moved inside the handler for better compatibility.
-
-exports.handler = async function(event, context) {
+// Use 'export const' to define the handler for ES Module compatibility.
+export const handler = async (event) => {
     // This function only accepts POST requests.
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Method Not Allowed' };
@@ -16,9 +15,6 @@ exports.handler = async function(event, context) {
     console.log("Function triggered. Processing request...");
 
     try {
-        // UPDATED: Dynamically import node-fetch for maximum compatibility.
-        const fetch = (await import('node-fetch')).default;
-
         // Get the prompt sent from the client-side game.
         const { prompt } = JSON.parse(event.body);
         
@@ -33,15 +29,21 @@ exports.handler = async function(event, context) {
 
         if (!apiKey) {
             console.error("CRITICAL ERROR: GEMINI_API_KEY environment variable not set or not found.");
-            throw new Error("GEMINI_API_KEY environment variable not set.");
+            // Avoid throwing an error that exposes stack traces; return a clean error instead.
+            return { statusCode: 500, body: JSON.stringify({ error: 'Server configuration error.' }) };
         }
         console.log("Successfully loaded API key from environment variables.");
 
+        // NOTE: You are using a preview model. Ensure it's the right one for your use case.
+        // It might be better to use 'gemini-1.5-flash-latest'.
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-        let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-        const payload = { contents: chatHistory };
+        const payload = {
+            contents: [{
+                role: "user",
+                parts: [{ text: prompt }]
+            }]
+        };
 
         console.log("Sending request to Gemini API...");
         // Call the actual Gemini API from the server-side function.
@@ -65,9 +67,8 @@ exports.handler = async function(event, context) {
         const result = await response.json();
         
         let generatedText = 'Could not generate text.';
-        if (result.candidates && result.candidates.length > 0 &&
-            result.candidates[0].content && result.candidates[0].content.parts &&
-            result.candidates[0].content.parts.length > 0) {
+        // Simplified and safer check for the generated text in the response.
+        if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
             generatedText = result.candidates[0].content.parts[0].text;
             console.log("Successfully extracted text from Gemini response.");
         } else {
