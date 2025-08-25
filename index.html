@@ -163,7 +163,6 @@
 
     <div class="game-container">
         <canvas id="gameCanvas"></canvas>
-        <!-- Start Screen Modal -->
         <div id="startScreen" class="modal">
             <h1>Beau's 'Protect the Plantation' Game</h1>
             <p>The invaders are approaching!</p>
@@ -171,7 +170,6 @@
             <button id="generateNameBtn" class="gemini-btn">✨ New Invader Name</button>
             <button id="startButton">Start Game</button>
         </div>
-        <!-- Game Over Modal -->
         <div id="gameOverScreen" class="modal hidden">
             <h1 id="gameOverTitle">Game Over</h1>
             <p>Prawns Destroyed: <span id="finalScore">0</span></p>
@@ -181,7 +179,6 @@
         </div>
     </div>
     
-    <!-- On-screen controls for mobile -->
     <div id="controls">
         <button id="left-btn" class="control-btn">LEFT</button>
         <button id="fire-btn" class="control-btn">FIRE</button>
@@ -234,38 +231,36 @@
         const missionReportContainer = document.getElementById('missionReportContainer');
 
 
-        // --- Gemini API Integration ---
+        // --- Gemini API Integration (CORRECTED) ---
         async function callGemini(prompt, button, outputElement) {
             button.disabled = true;
             outputElement.textContent = 'Generating...';
 
-            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-            const payload = { contents: chatHistory };
-            const apiKey = ""; // API key is handled by the environment
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            // CORRECT: The endpoint for YOUR Netlify proxy function.
+            const apiEndpoint = "/.netlify/functions/gemini-proxy";
 
             try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                const response = await fetch(apiEndpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    // Send the user's prompt in the request body
+                    body: JSON.stringify({ prompt: prompt }),
                 });
 
                 if (!response.ok) {
-                    throw new Error(`API request failed with status ${response.status}`);
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
                 }
 
-                const result = await response.json();
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    outputElement.textContent = text.replace(/"/g, ''); // Clean up quotes
-                } else {
-                    outputElement.textContent = 'Could not generate text. Please try again.';
-                }
+                const data = await response.json();
+                // NOTE: We now expect `data.text` based on our proxy function's response
+                const text = data.text || 'Could not generate text. Please try again.';
+                outputElement.textContent = text.replace(/"/g, ''); // Clean up quotes
+
             } catch (error) {
-                console.error("Gemini API Error:", error);
+                console.error("Error calling the proxy function:", error);
                 outputElement.textContent = 'Error connecting to the AI. Check console.';
             } finally {
                 button.disabled = false;
