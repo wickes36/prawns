@@ -8,9 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        /* --- EXPERT RESPONSIVE REFACTOR --- */
         :root {
-            /* Safe area variables with fallbacks */
             --safe-area-inset-top: env(safe-area-inset-top, 0px);
             --safe-area-inset-right: env(safe-area-inset-right, 0px);
             --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
@@ -32,7 +30,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Add padding that respects the safe areas */
             padding: var(--safe-area-inset-top) var(--safe-area-inset-right) var(--safe-area-inset-bottom) var(--safe-area-inset-left);
             box-sizing: border-box;
         }
@@ -46,9 +43,8 @@
             max-width: 500px;
             max-height: 900px;
             align-items: center;
-            /* --- FIX: Add padding to lift controls from bottom edge --- */
-            padding-bottom: 20px;
-            box-sizing: border-box;
+            /* --- NEW FIX: Vertically center the game and controls --- */
+            justify-content: center;
         }
 
         /* Game container maintains its shape and holds the canvas */
@@ -69,7 +65,6 @@
             image-rendering: pixelated;
         }
         
-        /* Controls container spans the full width below the game */
         #controls {
             display: flex;
             gap: 10px;
@@ -95,7 +90,6 @@
             user-select: none;
             touch-action: manipulation;
         }
-        /* --- END OF REFACTOR --- */
 
         .control-btn:active, .control-btn.active {
             transform: translateY(4px);
@@ -259,7 +253,6 @@
             vibrate();
             button.disabled = true;
             outputElement.textContent = 'Generating...';
-            // --- FIX: Make sure element is visible when generating ---
             if (outputElement.id === 'invaderNameDisplay') {
                 outputElement.style.display = 'block';
             }
