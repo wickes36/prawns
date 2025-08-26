@@ -46,6 +46,9 @@
             max-width: 500px;
             max-height: 900px;
             align-items: center;
+            /* --- FIX: Add padding to lift controls from bottom edge --- */
+            padding-bottom: 20px;
+            box-sizing: border-box;
         }
 
         /* Game container maintains its shape and holds the canvas */
@@ -256,6 +259,10 @@
             vibrate();
             button.disabled = true;
             outputElement.textContent = 'Generating...';
+            // --- FIX: Make sure element is visible when generating ---
+            if (outputElement.id === 'invaderNameDisplay') {
+                outputElement.style.display = 'block';
+            }
             const apiEndpoint = "/.netlify/functions/gemini-proxy";
             try {
                 const response = await fetch(apiEndpoint, {
