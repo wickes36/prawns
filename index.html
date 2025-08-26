@@ -17,11 +17,13 @@
 
         html, body {
             width: 100%;
-            height: 100%;
+            /* --- FIX: Remove fixed height to allow content to adapt --- */
             margin: 0;
             padding: 0;
             overflow: hidden;
             background-color: #052e16;
+            /* --- FIX: Ensure body is full height for centering --- */
+            height: 100%;
         }
 
         body {
@@ -39,12 +41,10 @@
             display: flex;
             flex-direction: column;
             width: 100%;
-            height: 100%;
+            /* --- FIX: Constrain height to the small (visible) viewport height --- */
+            max-height: 100svh;
             max-width: 500px;
-            max-height: 900px;
             align-items: center;
-            /* --- NEW FIX: Vertically center the game and controls --- */
-            justify-content: center;
         }
 
         /* Game container maintains its shape and holds the canvas */
@@ -55,6 +55,8 @@
             box-shadow: 0 0 20px rgba(163, 230, 53, 0.5);
             aspect-ratio: 400 / 600;
             box-sizing: border-box;
+            /* --- FIX: Allow the container to shrink properly when space is limited --- */
+            min-height: 0;
         }
 
         canvas {
